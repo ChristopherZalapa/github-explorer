@@ -1,22 +1,45 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
-import "dotenv/config";
+import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import favoritesRoutes from "./routes/favorites";
 
-const app = express();
-const PORT: string | number = process.env.PORT || 3000;
+dotenv.config();
 
-app.use(cors());
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(
+	cors({
+		origin: function (origin, callback) {
+			if (!origin) return callback(null, true);
+
+			if (origin.startsWith("http://localhost")) {
+				return callback(null, true);
+			}
+
+			if (origin.endsWith(".vercel.app")) {
+				return callback(null, true);
+			}
+
+			callback(new Error("Not allowed by CORS"));
+		},
+		credentials: true,
+	}),
+);
+
 app.use(express.json());
 
+// Root route
+app.get("/", (req, res) => {
+	res.send("Server is running!");
+});
+
+// API routes
 app.use("/auth", authRoutes);
 app.use("/user/favorites", favoritesRoutes);
 
-app.get("/", (req: Request, res: Response) => {
-	res.send("Hello from the app side!");
-});
-
+// Start server
 app.listen(PORT, () => {
 	console.log(`Server is running at http://localhost:${PORT}/`);
 });
